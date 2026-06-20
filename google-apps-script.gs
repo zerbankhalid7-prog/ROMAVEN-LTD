@@ -25,7 +25,8 @@ function doPost(e) {
 
     // 1. إرسال البريد لصاحب الموقع أولاً (أهم خطوة)
     try {
-      GmailApp.sendEmail(RECIPIENT_EMAIL, "[" + SITE_NAME + "] New Contact: " + subject, "", {
+      var ownerPlainBody = "New contact message from " + name + " (" + email + "):\n\nSubject: " + subject + "\n\nMessage:\n" + message;
+      GmailApp.sendEmail(RECIPIENT_EMAIL, "[" + SITE_NAME + "] New Contact: " + subject, ownerPlainBody, {
         htmlBody: buildOwnerEmail(name, email, subject, message),
         replyTo:  email
       });
@@ -36,7 +37,8 @@ function doPost(e) {
 
     // 2. إرسال الرد التلقائي للزائر (في try-catch مستقل لضمان عدم توقف النظام في حال فشله)
     try {
-      GmailApp.sendEmail(email, "Thank you for contacting " + SITE_NAME, "", {
+      var visitorPlainBody = "Thank you " + name + ", we have received your message regarding '" + subject + "' and will reply within 1 business day.";
+      GmailApp.sendEmail(email, "Thank you for contacting " + SITE_NAME, visitorPlainBody, {
         htmlBody: buildVisitorEmail(name, subject),
         replyTo:  RECIPIENT_EMAIL
       });
