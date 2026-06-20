@@ -1,4 +1,32 @@
 <?php
+// معالجة إرسال الرسالة
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // جمع البيانات من النموذج
+    $name = $_POST["name"];
+    $email = $_POST["email"];
+    $subject = $_POST["subject"];
+    $message = $_POST["message"];
+
+    // إعداد محتوى الرسالة
+    $to = "contact@romaven.com"; // البريد المستقبل
+    $headers = "From: " . $email;
+    $headers .= "
+Reply-To: " . $email;
+    $headers .= "Content-Type: text/html; charset=UTF-8";
+    $body = "<p><strong>الاسم:</strong> " . htmlspecialchars($name) . "</p>";
+    $body .= "<p><strong>البريد:</strong> " . htmlspecialchars($email) . "</p>";
+    $body .= "<p><strong>الموضوع:</strong> " . htmlspecialchars($subject) . "</p>";
+    $body .= "<p><strong>الرسالة:</strong></p>";
+    $body .= "<p>" . nl2br(htmlspecialchars($message)) . "</p>";
+
+    // إرسال الرسالة
+    if (mail($to, $subject, $body, $headers)) {
+        echo "<div class='alert alert-success'>تم إرسال الرسالة بنجاح!</div>";
+    } else {
+        echo "<div class='alert alert-danger'>حدث خطأ أثناء إرسال الرسالة. يرجى المحاولة مرة أخرى.</div>";
+    }
+}
+
 // إعدادات الاتصال بخادم البريد
 $hostname = '{imap.hostinger.com:993/imap/ssl}INBOX';
 $username = 'contact@romaven.com';
@@ -27,33 +55,6 @@ if ($emails) {
 
 // إغلاق الاتصال
 imap_close($inbox);
-
-// معالجة إرسال الرسالة
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // جمع البيانات من النموذج
-    $name = $_POST["name"];
-    $email = $_POST["email"];
-    $subject = $_POST["subject"];
-    $message = $_POST["message"];
-
-    // إعداد محتوى الرسالة
-    $to = "contact@romaven.com"; // البريد المستقبل
-    $headers = "From: " . $email;
-    $body = "الاسم: " . $name . "
-";
-    $body .= "البريد: " . $email . "
-
-";
-    $body .= "الرسالة:
-" . $message;
-
-    // إرسال الرسالة
-    if (mail($to, $subject, $body, $headers)) {
-        echo "<div class='alert alert-success'>تم إرسال الرسالة بنجاح!</div>";
-    } else {
-        echo "<div class='alert alert-danger'>حدث خطأ أثناء إرسال الرسالة. يرجى المحاولة مرة أخرى.</div>";
-    }
-}
 ?>
 
 <!DOCTYPE html>
