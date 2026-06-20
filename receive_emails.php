@@ -8,8 +8,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $message = $_POST["message"];
 
     // إعداد محتوى الرسالة باستخدام Formspree
-    // ملاحظة: يجب استبدال هذا الرابط برابط Formspree الخاص بك
-    // للحصول على الرابط، اذهب إلى: https://formspree.io وأنشئ حسابًا جديدًا
     $formspree_endpoint = "https://formspree.io/f/xkoadpkw"; // رابط Formspree الخاص بالموقع
 
     // إعداد البيانات المرسلة
@@ -44,14 +42,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($result !== false) {
         $response = json_decode($result, true);
         if (isset($response['ok']) && $response['ok'] === true) {
-            echo "<div class='alert alert-success'>تم إرسال الرسالة بنجاح!</div>";
+            $success_message = "تم إرسال الرسالة بنجاح!";
         } else {
-            echo "<div class='alert alert-danger'>حدث خطأ أثناء إرسال الرسالة. يرجى المحاولة مرة أخرى.</div>";
+            $error_message = "حدث خطأ أثناء إرسال الرسالة. يرجى المحاولة مرة أخرى.";
         }
     } else {
-        echo "<div class='alert alert-danger'>حدث خطأ في الاتصال بالخادم. يرجى المحاولة مرة أخرى.</div>";
+        $error_message = "حدث خطأ في الاتصال بالخادم. يرجى المحاولة مرة أخرى.";
     }
 }
+?>
 
 // دالة لإرسال الرسائل
 function sendEmail($to, $subject, $message, $fromEmail, $fromName) {
@@ -172,6 +171,14 @@ imap_close($inbox);
     <div class="container">
         <div class="contact-form">
             <h2 class="text-center mb-4">نموذج الاتصال</h2>
+            <?php if (isset($success_message)): ?>
+            <div class="alert alert-success"><?php echo $success_message; ?></div>
+            <?php endif; ?>
+
+            <?php if (isset($error_message)): ?>
+            <div class="alert alert-danger"><?php echo $error_message; ?></div>
+            <?php endif; ?>
+
             <form method="post" action="">
                 <div class="form-group">
                     <label for="name">الاسم</label>
