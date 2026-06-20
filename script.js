@@ -47,121 +47,32 @@ document.addEventListener('DOMContentLoaded', function() {
         this.querySelector('i').classList.toggle('fa-times');
     });
 
-    // ── Toast Notification System ──────────────────────────────────────────────
-    function showToast(type, title, message) {
-        // Remove existing toasts
-        document.querySelectorAll('.romaven-toast').forEach(t => t.remove());
+    // ── RomavenMailer — Custom Email Library ─────────────────────────────────
+    // Replace GOOGLE_SCRIPT_URL with your deployed Google Apps Script URL
+    // See: google-apps-script.gs for setup instructions
+    const GOOGLE_SCRIPT_URL = 'PASTE_YOUR_GOOGLE_SCRIPT_URL_HERE';
 
-        const toast = document.createElement('div');
-        toast.className = 'romaven-toast romaven-toast--' + type;
-        toast.innerHTML = `
-            <div class="romaven-toast__icon">
-                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-            </div>
-            <div class="romaven-toast__body">
-                <strong class="romaven-toast__title">${title}</strong>
-                <p class="romaven-toast__msg">${message}</p>
-            </div>
-            <button class="romaven-toast__close"><i class="fas fa-times"></i></button>
-        `;
-        document.body.appendChild(toast);
-
-        // Slide in
-        requestAnimationFrame(() => toast.classList.add('romaven-toast--visible'));
-
-        // Auto dismiss after 6s
-        const timer = setTimeout(() => dismissToast(toast), 6000);
-
-        toast.querySelector('.romaven-toast__close').addEventListener('click', () => {
-            clearTimeout(timer);
-            dismissToast(toast);
-        });
-    }
-
-    function dismissToast(toast) {
-        toast.classList.remove('romaven-toast--visible');
-        toast.addEventListener('transitionend', () => toast.remove(), { once: true });
-    }
-
-    // ── Contact Form Submission via Formspree ─────────────────────────────────
-    // FORMSPREE_ENDPOINT: replace 'xkoadpkw' with your own Formspree form ID
-    // Get your free form ID at https://formspree.io
-    const FORMSPREE_URL = 'https://formspree.io/f/xkoadpkw';
+    const mailer = new RomavenMailer({
+        endpoint: GOOGLE_SCRIPT_URL,
+        retries:  2,
+        timeout:  12000
+    });
 
     const contactForm = document.querySelector('.contact-form');
     if (contactForm) {
         contactForm.addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            const nameInput    = this.querySelector('input[name="name"]');
-            const emailInput   = this.querySelector('input[name="email"]');
-            const subjectInput = this.querySelector('input[name="subject"]');
-            const msgInput     = this.querySelector('textarea[name="message"]');
-            const submitBtn    = this.querySelector('button[type="submit"]');
+            const submitBtn = this.querySelector('button[type="submit"]');
 
-            const name    = nameInput.value.trim();
-            const email   = emailInput.value.trim();
-            const subject = subjectInput.value.trim();
-            const message = msgInput.value.trim();
+            const sent = await mailer.send({
+                name:    this.querySelector('input[name="name"]').value,
+                email:   this.querySelector('input[name="email"]').value,
+                subject: this.querySelector('input[name="subject"]').value,
+                message: this.querySelector('textarea[name="message"]').value
+            }, submitBtn);
 
-            // Client-side validation
-            if (!name || !email || !subject || !message) {
-                showToast('error', 'Missing Fields', 'Please fill in all fields before sending.');
-                return;
-            }
-
-            // Loading state
-            const originalHTML = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
-            submitBtn.disabled = true;
-
-            try {
-                // Build JSON payload for Formspree
-                // _replyto  → Formspree sends auto-reply to the visitor
-                // _subject  → subject line in your inbox
-                const payload = {
-                    name: name,
-                    email: email,
-                    subject: subject,
-                    message: message,
-                    _replyto: email,          // auto-reply goes to visitor
-                    _subject: 'ROMAVEN Contact: ' + subject
-                };
-
-                const response = await fetch(FORMSPREE_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.ok) {
-                    // Success!
-                    showToast(
-                        'success',
-                        'Message Sent Successfully! ✓',
-                        `Thank you, ${name}! We have received your message and will reply to ${email} as soon as possible.`
-                    );
-                    this.reset();
-                } else {
-                    // Formspree returned an error
-                    const errMsg = (data.errors && data.errors.map(err => err.message).join(', '))
-                        || 'Something went wrong. Please try again.';
-                    showToast('error', 'Failed to Send', errMsg);
-                }
-
-            } catch (err) {
-                console.error('Form submission error:', err);
-                showToast('error', 'Network Error', 'Could not reach the server. Please check your connection and try again.');
-            } finally {
-                // Restore button
-                submitBtn.innerHTML = originalHTML;
-                submitBtn.disabled = false;
-            }
+            if (sent) this.reset();
         });
     }
 
