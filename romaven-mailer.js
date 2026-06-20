@@ -306,15 +306,17 @@
       return false;
     }
 
-    /* Internal: make fetch request with timeout */
     async _request(data) {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), this.timeout);
 
       try {
+        // NOTE: No Content-Type header here intentionally.
+        // Sending without it avoids the CORS preflight OPTIONS request
+        // that Google Apps Script does not support. The body is still
+        // valid JSON and Apps Script reads it via e.postData.contents.
         const response = await fetch(this.endpoint, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name:    data.name.trim(),
             email:   data.email.trim(),
@@ -327,10 +329,7 @@
 
         clearTimeout(timer);
 
-        if (!response.ok) {
-          throw new Error(`Server error: ${response.status}`);
-        }
-
+        // Google Apps Script always returns 200; check our own status field
         const result = await response.json();
         if (result.status !== 'success') {
           throw new Error(result.message || 'Server rejected the request.');
