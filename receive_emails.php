@@ -7,15 +7,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $subject = $_POST["subject"];
     $message = $_POST["message"];
 
-    // إعداد محتوى الرسالة
-    $to = "contact@romaven.com"; // البريد المستقبل
-    $emailSubject = "رسالة من موقعكم: " . $subject;
+    // إعداد محتوى الرسالة باستخدام Formspree
+    // ملاحظة: يجب استبدال هذا الرابط برابط Formspree الخاص بك
+    // للحصول على الرابط، اذهب إلى: https://formspree.io وأنشئ حسابًا جديدًا
+    $formspree_endpoint = "https://formspree.io/f/xqkzvzjw"; // استبدل هذا برابط Formspree الخاص بك
 
-    // إرسال الرسالة
-    if (sendEmail($to, $emailSubject, $message, $email, $name)) {
-        echo "<div class='alert alert-success'>تم إرسال الرسالة بنجاح!</div>";
+    // إعداد البيانات المرسلة
+    $data = array(
+        "name" => $name,
+        "email" => $email,
+        "subject" => $subject,
+        "message" => $message
+    );
+
+    // تحويل البيانات إلى JSON
+    $json_data = json_encode($data);
+
+    // إعداد خيارات الطلب
+    $options = array(
+        "http" => array(
+            "method" => "POST",
+            "header" => array(
+                "Content-type: application/json",
+                "Accept: application/json"
+            ),
+            "content" => $json_data,
+            "timeout" => 10 // ثواني
+        )
+    );
+
+    // إنشاء الطلب
+    $context = stream_context_create($options);
+    $result = file_get_contents($formspree_endpoint, false, $context);
+
+    // التحقق من النتيجة
+    if ($result !== false) {
+        $response = json_decode($result, true);
+        if (isset($response['ok']) && $response['ok'] === true) {
+            echo "<div class='alert alert-success'>تم إرسال الرسالة بنجاح!</div>";
+        } else {
+            echo "<div class='alert alert-danger'>حدث خطأ أثناء إرسال الرسالة. يرجى المحاولة مرة أخرى.</div>";
+        }
     } else {
-        echo "<div class='alert alert-danger'>حدث خطأ أثناء إرسال الرسالة. يرجى المحاولة مرة أخرى.</div>";
+        echo "<div class='alert alert-danger'>حدث خطأ في الاتصال بالخادم. يرجى المحاولة مرة أخرى.</div>";
     }
 }
 
@@ -47,13 +81,17 @@ function sendEmail($to, $subject, $message, $fromEmail, $fromName) {
     $htmlContent .= "</html>";
 
     // إعداد الرؤوس
-    $headers = "MIME-Version: 1.0" . "
+    $headers = "MIME-Version: 1.0" . "
+
 ";
-    $headers .= "Content-type:text/html;charset=UTF-8" . "
+    $headers .= "Content-type:text/html;charset=UTF-8" . "
+
 ";
-    $headers .= "From: " . $fromName . " <" . $fromEmail . ">" . "
+    $headers .= "From: " . $fromName . " <" . $fromEmail . ">" . "
+
 ";
-    $headers .= "Reply-To: " . $fromEmail . "
+    $headers .= "Reply-To: " . $fromEmail . "
+
 ";
 
     // إرسال الرسالة
