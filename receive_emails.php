@@ -10,7 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // إعداد محتوى الرسالة باستخدام Formspree
     // ملاحظة: يجب استبدال هذا الرابط برابط Formspree الخاص بك
     // للحصول على الرابط، اذهب إلى: https://formspree.io وأنشئ حسابًا جديدًا
-    $formspree_endpoint = "https://formspree.io/f/xqkzvzjw"; // استبدل هذا برابط Formspree الخاص بك
+    $formspree_endpoint = "https://formspree.io/f/xkoadpkw"; // رابط Formspree الخاص بالموقع
 
     // إعداد البيانات المرسلة
     $data = array(
