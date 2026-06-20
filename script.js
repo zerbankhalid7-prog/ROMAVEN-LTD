@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ── RomavenMailer — Custom Email Library ─────────────────────────────────
     // Replace GOOGLE_SCRIPT_URL with your deployed Google Apps Script URL
     // See: google-apps-script.gs for setup instructions
-    const GOOGLE_SCRIPT_URL = 'PASTE_YOUR_GOOGLE_SCRIPT_URL_HERE';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzOEZgulSxwVVqgMlMjnteYp-kZbLqtASIAWbz-Dx2qzhiNI0Ov5ZXgC-h5QDUBrJRtAQ/exec';
 
     const mailer = new RomavenMailer({
         endpoint: GOOGLE_SCRIPT_URL,
